@@ -4,7 +4,7 @@ provider "aws" {
 
 # Create a new VPC
 resource "aws_vpc" "example" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.vpc_cidr
 
   tags = {
     Name = "example-vpc"
@@ -108,4 +108,52 @@ resource "null_resource" "generate_kubeconfig" {
   }
 
   depends_on = [aws_eks_cluster.example]
+}
+
+# EFS Configuration
+
+# Create EFS File System
+resource "aws_efs_file_system" "efs" {
+  creation_token = "efs-for-eks"
+
+  lifecycle_policy {
+    transition_to_ia = "AFTER_30_DAYS"
+  }
+
+  tags = {
+    Name = "efs-for-eks"
+  }
+}
+
+# Create EFS Mount Targets for each subnet
+resource "aws_efs_mount_target" "efs_mount_target" {
+  count           = 2
+  file_system_id  = aws_efs_file_system.efs.id
+  subnet_id       = aws_subnet.example[count.index].id
+  security_groups = [aws_security_group.efs_sg.id]
+}
+
+# Security Group for EFS
+resource "aws_security_group" "efs_sg" {
+  name        = "efs-sg"
+  description = "Security group for EFS"
+  vpc_id      = aws_vpc.example.id
+
+  ingress {
+    from_port   = 2049
+    to_port     = 2049
+    protocol    = "tcp"
+    cidr_blocks = ["10.0.0.0/16"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "efs-sg"
+  }
 }

@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app-deployment
+  namespace: example-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: app-container
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        env:
+        - name: USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: app-env-secret
+              key: USERNAME
+        - name: PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: app-env-secret
+              key: PASSWORD
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/config
+        - name: efs-storage
+          mountPath: /mnt/efs
+      - name: busybox
+        image: busybox
+        command: ['sh', '-c', 'while true; do echo hello; sleep 10;done']
+      volumes:
+      - name: config-volume
+        configMap:
+          name: app-config
+      - name: efs-storage
+        persistentVolumeClaim:
+          claimName: efs-pvc

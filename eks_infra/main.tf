@@ -1,3 +1,12 @@
+terraform {
+  required_providers {
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = ">= 2.0.0"  # Adjust to the latest stable version
+    }
+  }
+}
+
 provider "kubernetes" {
   config_path = var.kubeconfig_path
 }
@@ -55,7 +64,7 @@ resource "kubernetes_ingress" "example_ingress" {
 
       http {
         path {
-          path = "/"
+          path     = "/"
           backend {
             service_name = kubernetes_service.example_service.metadata[0].name
             service_port = "80"
@@ -65,6 +74,7 @@ resource "kubernetes_ingress" "example_ingress" {
     }
   }
 }
+
 
 
 

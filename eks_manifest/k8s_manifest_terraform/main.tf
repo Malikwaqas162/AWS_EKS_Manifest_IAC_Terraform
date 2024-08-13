@@ -2,7 +2,7 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.0.0"  # Adjust to the latest stable version
+      version = ">= 2.0.0"
     }
   }
 }
@@ -23,7 +23,7 @@ resource "kubernetes_namespace" "example" {
   }
 }
 
-# Kubernetes secret for SSL certificates
+# Kubernetes Secret for SSL certificates
 resource "kubernetes_secret" "ssl_secret" {
   metadata {
     name      = var.ssl_secret_name
@@ -42,7 +42,7 @@ resource "kubernetes_secret" "ssl_secret" {
 }
 
 # Kubernetes Ingress
-resource "kubernetes_ingress" "example_ingress" {
+resource "kubernetes_ingress_v1" "example_ingress" {
   metadata {
     name      = var.ingress_name
     namespace = kubernetes_namespace.example.metadata[0].name
@@ -55,8 +55,8 @@ resource "kubernetes_ingress" "example_ingress" {
 
   spec {
     tls {
-      secret_name = kubernetes_secret.ssl_secret.metadata[0].name
       hosts       = [var.host]
+      secret_name = kubernetes_secret.ssl_secret.metadata[0].name
     }
 
     rule {
@@ -65,9 +65,15 @@ resource "kubernetes_ingress" "example_ingress" {
       http {
         path {
           path     = "/"
+          path_type = "Prefix"
+
           backend {
-            service_name = kubernetes_service.example_service.metadata[0].name
-            service_port = "80"
+            service {
+              name = kubernetes_service.example_service.metadata[0].name
+              port {
+                number = 80
+              }
+            }
           }
         }
       }
@@ -75,40 +81,14 @@ resource "kubernetes_ingress" "example_ingress" {
   }
 }
 
-
-
-
-# Kubernetes Service
-resource "kubernetes_service" "example_service" {
-  metadata {
-    name      = var.service_name
-    namespace = kubernetes_namespace.example.metadata[0].name
-    labels = {
-      Name   = "maybank-eksmanifest-resources"
-      Project = "EKS-Manifest"
-      Env     = "Sandbox_dev"
-    }
-  }
-
-  spec {
-    selector = {
-      app = var.app_label
-    }
-
-    port {
-      port        = 80
-      target_port = 8080
-    }
-  }
-}
-
 # Kubernetes Deployment
-resource "kubernetes_deployment" "example_deployment" {
+resource "kubernetes_deployment_v1" "example_deployment" {  # Use v1 here
   metadata {
     name      = var.deployment_name
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -156,6 +136,11 @@ resource "kubernetes_deployment" "example_deployment" {
             name      = "config-volume"
             mount_path = "/etc/config"
           }
+
+          volume_mount {
+            name       = "efs-storage"
+            mount_path = "/mnt/efs"
+          }
         }
 
         volume {
@@ -165,7 +150,40 @@ resource "kubernetes_deployment" "example_deployment" {
             name = kubernetes_config_map.example_configmap.metadata[0].name
           }
         }
+
+        volume {
+          name = "efs-storage"
+
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.example_pvc.metadata[0].name
+          }
+        }
       }
+    }
+  }
+}
+
+# Kubernetes Service
+resource "kubernetes_service" "example_service" {
+  metadata {
+    name      = var.service_name
+    namespace = kubernetes_namespace.example.metadata[0].name
+    labels = {
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
+      Project = "EKS-Manifest"
+      Env     = "Sandbox_dev"
+    }
+  }
+
+  spec {
+    selector = {
+      app = var.app_label
+    }
+
+    port {
+      port        = 80
+      target_port = 8080
     }
   }
 }
@@ -176,7 +194,8 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "example_hpa" {
     name      = var.hpa_name
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -184,8 +203,8 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "example_hpa" {
 
   spec {
     scale_target_ref {
-      kind = "Deployment"
-      name = kubernetes_deployment.example_deployment.metadata[0].name
+      kind        = "Deployment"
+      name        = kubernetes_deployment_v1.example_deployment.metadata[0].name  # Reference v1
       api_version = "apps/v1"
     }
 
@@ -206,29 +225,13 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "example_hpa" {
   }
 }
 
-# Kubernetes ConfigMap
-resource "kubernetes_config_map" "example_configmap" {
-  metadata {
-    name      = var.configmap_name
-    namespace = kubernetes_namespace.example.metadata[0].name
-    labels = {
-      Name   = "maybank-eksmanifest-resources"
-      Project = "EKS-Manifest"
-      Env     = "Sandbox_dev"
-    }
-  }
-
-  data = {
-    "config-file.conf" = var.config_content
-  }
-}
-
 # Kubernetes Persistent Volume
 resource "kubernetes_persistent_volume" "example_pv" {
   metadata {
     name = var.pv_name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -260,7 +263,8 @@ resource "kubernetes_persistent_volume_claim" "example_pvc" {
     name      = var.pvc_name
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -279,13 +283,32 @@ resource "kubernetes_persistent_volume_claim" "example_pvc" {
   }
 }
 
+# Kubernetes ConfigMap
+resource "kubernetes_config_map" "example_configmap" {
+  metadata {
+    name      = var.configmap_name
+    namespace = kubernetes_namespace.example.metadata[0].name
+    labels = {
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
+      Project = "EKS-Manifest"
+      Env     = "Sandbox_dev"
+    }
+  }
+
+  data = {
+    "config-file.conf" = var.config_content
+  }
+}
+
 # Simple Busybox Pod for Testing
 resource "kubernetes_pod" "busybox" {
   metadata {
     name      = "busybox"
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      app     = var.app_label
+      Name    = "maybank-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -294,7 +317,7 @@ resource "kubernetes_pod" "busybox" {
   spec {
     container {
       name    = "busybox"
-      image   = "busybox"
+      image   = "busybox:latest"
       command = ["sleep", "3600"]
     }
   }

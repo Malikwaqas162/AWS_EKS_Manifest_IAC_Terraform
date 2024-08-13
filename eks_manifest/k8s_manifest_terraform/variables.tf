@@ -51,7 +51,7 @@ variable "deployment_name" {
 variable "replicas" {
   description = "Number of replicas for the deployment"
   type        = number
-  default     = 3
+  default     = 2
 }
 
 variable "container_name" {

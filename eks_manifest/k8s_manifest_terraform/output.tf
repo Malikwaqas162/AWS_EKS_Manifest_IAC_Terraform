@@ -10,7 +10,7 @@ output "namespace" {
 
 output "ingress_host" {
   description = "The host configured in the Ingress"
-  value       = kubernetes_ingress.example_ingress.spec[0].rule[0].host
+  value       = kubernetes_ingress_v1.example_ingress.spec[0].rule[0].host
 }
 
 output "service_name" {
@@ -20,7 +20,7 @@ output "service_name" {
 
 output "deployment_name" {
   description = "The name of the Kubernetes Deployment"
-  value       = kubernetes_deployment.example_deployment.metadata[0].name
+  value       = kubernetes_deployment_v1.example_deployment.metadata[0].name
 }
 
 output "pvc_name" {

@@ -16,7 +16,7 @@ resource "kubernetes_namespace" "example" {
   metadata {
     name = var.namespace
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      Name   = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -29,7 +29,7 @@ resource "kubernetes_secret" "ssl_secret" {
     name      = var.ssl_secret_name
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      Name   = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -47,7 +47,7 @@ resource "kubernetes_ingress_v1" "example_ingress" {
     name      = var.ingress_name
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
-      Name   = "maybank-eksmanifest-resources"
+      Name   = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -88,7 +88,7 @@ resource "kubernetes_deployment_v1" "example_deployment" {  # Use v1 here
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -107,7 +107,7 @@ resource "kubernetes_deployment_v1" "example_deployment" {  # Use v1 here
       metadata {
         labels = {
           app    = var.app_label
-          Name   = "maybank-eksmanifest-resources"
+          Name   = "YOURORG-eksmanifest-resources"
           Project = "EKS-Manifest"
           Env     = "Sandbox_dev"
         }
@@ -170,7 +170,7 @@ resource "kubernetes_service" "example_service" {
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -195,7 +195,7 @@ resource "kubernetes_horizontal_pod_autoscaler_v2" "example_hpa" {
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -231,7 +231,7 @@ resource "kubernetes_persistent_volume" "example_pv" {
     name = var.pv_name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -264,7 +264,7 @@ resource "kubernetes_persistent_volume_claim" "example_pvc" {
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -290,7 +290,7 @@ resource "kubernetes_config_map" "example_configmap" {
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
@@ -308,7 +308,7 @@ resource "kubernetes_pod" "busybox" {
     namespace = kubernetes_namespace.example.metadata[0].name
     labels = {
       app     = var.app_label
-      Name    = "maybank-eksmanifest-resources"
+      Name    = "YOURORG-eksmanifest-resources"
       Project = "EKS-Manifest"
       Env     = "Sandbox_dev"
     }
